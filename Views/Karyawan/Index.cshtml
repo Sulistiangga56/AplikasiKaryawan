@@ -1,0 +1,74 @@
+@model IEnumerable<AplikasiKaryawanApp.Models.Karyawan>
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+<h2>Daftar Karyawan Aktif</h2>
+
+<a class="btn btn-primary mb-3" href="/Karyawan/Create">Create New</a>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nama Perusahaan</th>
+            <th>Nama Cabang</th>
+            <th>Kode Karyawan</th>
+            <th>Nama Karyawan</th>
+            <th>Aktif</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Where(k => k.Aktif == true))
+    {
+        <tr>
+            <td>@item.Perusahaan?.NamaPerusahaan</td>
+            <td>@item.Cabang?.NamaCabang</td>
+            <td>@item.KodeKaryawan</td>
+            <td>@item.NamaKaryawan</td>
+            <td>
+                <input type="checkbox" disabled @(item.Aktif ? "checked" : "") />
+            </td>
+            <td>
+                <a class="btn btn-secondary btn-sm" href="/Karyawan/Edit/@item.Id">Edit</a>
+                <button type="button" class="btn btn-warning btn-sm delete-btn" data-id="@item.Id">Delete</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<script>
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            var id = this.getAttribute('data-id');
+            var confirmation = confirm('YakiDelete karyawan ini?');
+            if (confirmation) {
+                fetch(`/Karyawan/Delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': '@Antiforgery.GetTokens(Context).RequestToken'
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => alert('Terjadi kesalahan saat menonaktifkan karyawan.'));
+            }
+        });
+    });
+</script>

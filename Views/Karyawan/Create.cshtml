@@ -1,0 +1,139 @@
+@model AplikasiKaryawanApp.Models.Karyawan
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h2>Create</h2>
+<h4>Karyawan</h4>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label>Nama Cabang</label>
+        <select asp-for="CabangId" class="form-control" asp-items="ViewBag.CabangId">
+            <option value="">-- Pilih Cabang --</option>
+        </select>
+        <span id="CabangIdError" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label>Kode Karyawan</label>
+        <input asp-for="KodeKaryawan" class="form-control" id="KodeKaryawan" />
+        <span id="KodeKaryawanError" class="text-danger"></span>
+        <span asp-validation-for="KodeKaryawan" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Nama Karyawan</label>
+        <input asp-for="NamaKaryawan" class="form-control" />
+        <span id="NamaKaryawanError" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label>Aktif</label>
+        <input asp-for="Aktif" type="checkbox" checked />
+    </div>
+    <button type="submit" class="btn btn-success">Create</button>
+</form>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<a class="btn btn-secondary mt-2" href="/Karyawan/Index">Back to List</a>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const kodeInput = document.querySelector('#KodeKaryawan');
+            const kodeErrorSpan = document.getElementById('KodeKaryawanError');
+
+            const namaInput = document.querySelector('[name="NamaKaryawan"]');
+            const namaErrorSpan = document.getElementById('NamaKaryawanError');
+
+            const cabangSelect = document.querySelector('[name="CabangId"]');
+            const cabangErrorSpan = document.getElementById('CabangIdError');
+
+            const form = document.querySelector('form');
+
+            let kodeValid = true;
+
+            $('#KodeKaryawan').on('blur', function () {
+                const kode = $(this).val().trim();
+
+                if (kode.length === 5) {
+                    $.get('@Url.Action("CekKodeKaryawan", "Karyawan")', { kode: kode }, function (data) {
+                        if (!data) {
+                            $('#KodeKaryawanError').text('Kode Karyawan sudah digunakan.');
+                            kodeValid = false;
+                        } else {
+                            $('#KodeKaryawanError').text('');
+                            kodeValid = true;
+                        }
+                    });
+                }
+            });
+
+            form.addEventListener('submit', function (e) {
+                let isValid = true;
+
+                const cabangValue = cabangSelect.value.trim();
+                if (cabangValue === '') {
+                    cabangErrorSpan.textContent = 'Cabang tidak boleh kosong.';
+                    isValid = false;
+                } else {
+                    cabangErrorSpan.textContent = '';
+                }
+
+                const kodeValue = kodeInput.value.trim();
+                if (kodeValue === '') {
+                    kodeErrorSpan.textContent = 'Kode Karyawan tidak boleh kosong.';
+                    isValid = false;
+                } else if (kodeValue.length < 5) {
+                    kodeErrorSpan.textContent = 'Kode Karyawan tidak boleh kurang dari 5 digit.';
+                    isValid = false;
+                } else if (kodeValue.length > 5) {
+                    kodeErrorSpan.textContent = 'Kode Karyawan tidak boleh lebih dari 5 digit.';
+                    isValid = false;
+                }
+
+                const namaValue = namaInput.value.trim();
+                if (namaValue === '') {
+                    namaErrorSpan.textContent = 'Nama Karyawan tidak boleh kosong.';
+                    isValid = false;
+                } else {
+                    namaErrorSpan.textContent = '';
+                }
+
+                if (!kodeValid) {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            kodeInput.addEventListener('input', function () {
+                if (kodeInput.value.trim() !== '') {
+                    kodeErrorSpan.textContent = '';
+                }
+            });
+
+            namaInput.addEventListener('input', function () {
+                if (namaInput.value.trim() !== '') {
+                    namaErrorSpan.textContent = '';
+                }
+            });
+
+            cabangSelect.addEventListener('change', function () {
+                if (cabangSelect.value.trim() !== '') {
+                    cabangErrorSpan.textContent = '';
+                }
+            });
+        });
+    </script>
+}
